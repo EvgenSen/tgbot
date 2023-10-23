@@ -3,6 +3,7 @@
 # This is a simple echo bot using the decorator mechanism.
 # It echoes any incoming text messages.
 
+import os
 import telebot
 import config
 
@@ -16,6 +17,15 @@ def send_welcome(message):
 Hi there, I am EchoBot.
 I am here to echo your kind words back to you. Just say anything nice and I'll say the exact same thing to you!\
 """)
+
+@bot.message_handler(commands=['image'])
+def start_message(message):
+    for cam in config.LIST_OF_CAMERAS:
+        cmd = "ffmpeg -i '" + cam + "' -qscale:v 2 -frames:v 1 -hide_banner -y -loglevel error tmp.jpg"
+        os.system(cmd)
+        img = open("tmp.jpg", 'rb')
+        bot.send_photo(message.chat.id, img)
+        img.close()
 
 
 # Handle all other messages with content_type 'text' (content_types defaults to ['text'])
