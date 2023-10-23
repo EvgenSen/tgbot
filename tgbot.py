@@ -4,10 +4,9 @@
 # It echoes any incoming text messages.
 
 import telebot
+import config
 
-API_TOKEN = '<api_token>'
-
-bot = telebot.TeleBot(API_TOKEN)
+bot = telebot.TeleBot(config.API_TOKEN)
 
 
 # Handle '/start' and '/help'
