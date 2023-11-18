@@ -5,6 +5,7 @@
 
 import os
 import telebot
+from telebot import types
 import utils
 import config
 
@@ -61,6 +62,25 @@ def read_cmd(message):
         bot.send_message(message.chat.id, "Ваша заметка:")
         bot.send_message(message.chat.id, text)
 
+
+@bot.message_handler(commands=['worktime'])
+def worktime_cmd(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = types.KeyboardButton("Сегодня")
+    btn2 = types.KeyboardButton("Вчера")
+    markup.add(btn2, btn1)
+    markup.row('Неделя')
+    bot.send_message(message.chat.id, "Выберите дату:", reply_markup=markup)
+    bot.register_next_step_handler(message, worktime_cmd_next_step)
+
+def worktime_cmd_next_step(message):
+    empty_markup = telebot.types.ReplyKeyboardRemove()
+    if message.text=="Сегодня":
+        bot.send_message(message.chat.id,'Нет информации за этот период (1 TODO)', reply_markup=empty_markup)
+    elif message.text=="Вчера":
+        bot.send_message(message.chat.id,'Нет информации за этот период (2 TODO)', reply_markup=empty_markup)
+    elif message.text=="Неделя":
+        bot.send_message(message.chat.id,'Нет информации за этот период (3 TODO)', reply_markup=empty_markup)
 
 # Handle all other messages with content_type 'text' (content_types defaults to ['text'])
 @bot.message_handler(func=lambda message: True)
