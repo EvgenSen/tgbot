@@ -5,6 +5,7 @@
 
 import os
 import telebot
+import utils
 import config
 
 bot = telebot.TeleBot(config.API_TOKEN)
@@ -20,7 +21,7 @@ I am here to echo your kind words back to you. Just say anything nice and I'll s
 
 
 @bot.message_handler(commands=['image'])
-def start_message(message):
+def iamge_cmd(message):
     for cam in config.LIST_OF_CAMERAS:
         cmd = "ffmpeg -i '" + cam + "' -qscale:v 2 -frames:v 1 -hide_banner -y -loglevel error tmp.jpg"
         os.system(cmd)
@@ -30,45 +31,35 @@ def start_message(message):
 
 
 @bot.message_handler(commands=['save'])
-def save_message(message):
+def save_cmd(message):
     text = message.text[6:] # Remove '/save '
     if text:
-        try:
-            filename = os.path.join(os.path.expanduser(config.WORK_DIR), message.from_user.username)
-            f = open(filename, "w")
-            f.write(text)
-            f.close()
+        filename = os.path.join(os.path.expanduser(config.WORK_DIR), message.from_user.username)
+        if utils.save_to_file(filename, text) == 0:
             bot.send_message(message.chat.id, "Заметка сохранена")
-        except Exception as e:
-            print(str(e))
+        else:
             bot.send_message(message.chat.id, "Ошибка при сохранении заметки")
         return;
     bot.send_message(message.chat.id, "Введите текст заметки")
-    bot.register_next_step_handler(message, save_message_next_step)
+    bot.register_next_step_handler(message, save_cmd_next_step)
 
-def save_message_next_step(message):
-    try:
-        filename = os.path.join(os.path.expanduser(config.WORK_DIR), message.from_user.username)
-        f = open(filename, "w")
-        f.write(message.text)
-        f.close()
+def save_cmd_next_step(message):
+    filename = os.path.join(os.path.expanduser(config.WORK_DIR), message.from_user.username)
+    if utils.save_to_file(filename, message.text) == 0:
         bot.send_message(message.chat.id, "Заметка сохранена")
-    except Exception as e:
-        print(str(e))
+    else:
         bot.send_message(message.chat.id, "Ошибка при сохранении заметки")
 
 
 @bot.message_handler(commands=['read'])
-def save_message(message):
-    try:
-        filename = os.path.join(os.path.expanduser(config.WORK_DIR), message.from_user.username)
-        f = open(filename, "r")
-        bot.send_message(message.chat.id, "Ваша заметка:")
-        bot.send_message(message.chat.id, f.read())
-        f.close()
-    except Exception as e:
-        print(str(e))
+def read_cmd(message):
+    filename = os.path.join(os.path.expanduser(config.WORK_DIR), message.from_user.username)
+    text = utils.read_from_file(filename)
+    if text is None:
         bot.send_message(message.chat.id, "Ошибка при чтении заметки")
+    else:
+        bot.send_message(message.chat.id, "Ваша заметка:")
+        bot.send_message(message.chat.id, text)
 
 
 # Handle all other messages with content_type 'text' (content_types defaults to ['text'])
