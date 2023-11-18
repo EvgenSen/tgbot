@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
-# This is a simple echo bot using the decorator mechanism.
-# It echoes any incoming text messages.
+# This is a simple bot using the telebot library
+# to interact with the telegram API
 
 import os
 import telebot
@@ -15,9 +15,12 @@ bot = telebot.TeleBot(config.API_TOKEN)
 # Handle '/start' and '/help'
 @bot.message_handler(commands=['help', 'start'])
 def send_welcome(message):
-    bot.reply_to(message, """\
-Hi there, I am EchoBot.
-I am here to echo your kind words back to you. Just say anything nice and I'll say the exact same thing to you!\
+    bot.send_message(message.chat.id, """\
+Что умеет этот бот:
+/image - получить изображение с камер
+/save - сохранить заметку
+/read - прочитать заметку
+/worktime - прочитать инфо о рабочем времени (TODO)\
 """)
 
 
@@ -37,9 +40,9 @@ def save_cmd(message):
     if text:
         filename = os.path.join(os.path.expanduser(config.WORK_DIR), message.from_user.username)
         if utils.save_to_file(filename, text) == 0:
-            bot.send_message(message.chat.id, "Заметка сохранена")
+            bot.send_message(message.chat.id, "✅ Заметка сохранена")
         else:
-            bot.send_message(message.chat.id, "Ошибка при сохранении заметки")
+            bot.send_message(message.chat.id, "❌ Ошибка при сохранении заметки")
         return;
     bot.send_message(message.chat.id, "Введите текст заметки")
     bot.register_next_step_handler(message, save_cmd_next_step)
@@ -47,9 +50,9 @@ def save_cmd(message):
 def save_cmd_next_step(message):
     filename = os.path.join(os.path.expanduser(config.WORK_DIR), message.from_user.username)
     if utils.save_to_file(filename, message.text) == 0:
-        bot.send_message(message.chat.id, "Заметка сохранена")
+        bot.send_message(message.chat.id, "✅ Заметка сохранена")
     else:
-        bot.send_message(message.chat.id, "Ошибка при сохранении заметки")
+        bot.send_message(message.chat.id, "❌ Ошибка при сохранении заметки")
 
 
 @bot.message_handler(commands=['read'])
@@ -57,7 +60,7 @@ def read_cmd(message):
     filename = os.path.join(os.path.expanduser(config.WORK_DIR), message.from_user.username)
     text = utils.read_from_file(filename)
     if text is None:
-        bot.send_message(message.chat.id, "Ошибка при чтении заметки")
+        bot.send_message(message.chat.id, "❌ Ошибка при чтении заметки")
     else:
         bot.send_message(message.chat.id, "Ваша заметка:")
         bot.send_message(message.chat.id, text)
