@@ -12,7 +12,7 @@ import config
 bot = AsyncTeleBot(config.API_TOKEN)
 
 
-# Handle '/start' and '/help'
+# Handle '/help' and '/start'
 @bot.message_handler(commands=['help', 'start'])
 def send_welcome(message):
     bot.send_message(message.chat.id, """\
@@ -25,10 +25,11 @@ def send_welcome(message):
 
 @bot.message_handler(commands=['image'])
 async def iamge_cmd(message):
+    tmp_cam_filename="/tmp/cam.jpg"
     for cam in config.LIST_OF_CAMERAS:
-        cmd = "ffmpeg -i '" + cam + "' -qscale:v 2 -frames:v 1 -hide_banner -y -loglevel error tmp.jpg"
+        cmd = "ffmpeg -i '" + cam + "' -qscale:v 2 -frames:v 1 -hide_banner -y -loglevel error " + tmp_cam_filename
         os.system(cmd)
-        img = open("tmp.jpg", 'rb')
+        img = open(tmp_cam_filename, 'rb')
         await bot.send_photo(message.chat.id, img)
         img.close()
 
